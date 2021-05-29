@@ -20,6 +20,7 @@ import CategoryManage from "./pages/admin/category/categoryManage";
 import SubCatManage from "./pages/admin/subCat/subCatManage";
 import UpdateCategory from "./pages/admin/category/updateCategory";
 import CreateProduct from "./pages/admin/product/createProduct";
+import ListAllProducts from "./pages/admin/product/listAllProducts";
 const App = () => {
   const dispatch = useDispatch();
 
@@ -29,7 +30,6 @@ const App = () => {
         const idtoken = await user.getIdTokenResult();
 
         getCurrrentUser(idtoken.token).then((res) => {
-          console.log(res.data);
           dispatch({
             type: "LOGGED_IN_USER",
             payload: {
@@ -49,6 +49,7 @@ const App = () => {
       <ToastContainer />
       <Switch>
         {/* <div>{user}</div> */}
+        <AdminRoutes exact path="/admin/products" component={ListAllProducts} />
         <AdminRoutes
           exact
           path="/admin/create-product"

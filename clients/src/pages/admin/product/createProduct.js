@@ -6,7 +6,9 @@ import { createProduct } from "../../../functions/product";
 import { getCategories } from "../../../functions/category";
 import { getCurrrentUser } from "../../../functions/auth";
 import { getSubCats } from "../../../functions/subCat";
-import { Select } from "antd";
+import { Select, Avatar, Badge, Spin } from "antd";
+import FileUploader from "../../../components/fileUpload/fileUploader";
+import axios from "axios";
 const initialState = {
   title: "",
   creator: "",
@@ -25,6 +27,7 @@ const initialState = {
 
 const CreateProduct = () => {
   const [values, setValues] = useState(initialState);
+  const [imgloading, setImgloading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [subCatsList, setSubCatsList] = useState([]);
   const { user } = useSelector((state) => ({ ...state }));
@@ -91,13 +94,66 @@ const CreateProduct = () => {
     setShowSubCats(true);
     fethAllSubCategory(e);
   };
+
+  const removeImageHandler = (img_id) => {
+    setImgloading(true);
+    axios
+      .post(
+        process.env.REACT_APP_API + "remove-image/",
+        {
+          public_id: img_id,
+        },
+        {
+          headers: {
+            idtoken: user.idtoken,
+          },
+        }
+      )
+      .then((res) => {
+        const imgs = values.images;
+        let filteredImgs = imgs.filter((img) => img.public_id !== img_id);
+        setValues({ ...values, images: filteredImgs });
+        setImgloading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setImgloading(false);
+      });
+  };
+
+  let spinner = null;
+  if (imgloading) spinner = <Spin />;
+  const imagePreview = (
+    <div className="col-md-4">
+      <h1>Selected Images</h1>
+      {images.map((img) => {
+        return (
+          <Badge
+            count="X"
+            key={img.public_id}
+            onClick={() => removeImageHandler(img.public_id)}
+            style={{ cursor: "pointer" }}
+          >
+            <Avatar
+              src={img.url}
+              size={100}
+              shape="square"
+              className="m-3"
+            ></Avatar>
+          </Badge>
+        );
+      })}
+      {spinner}
+    </div>
+  );
+
   return (
     <div className="container-fluid">
       <div className="row">
         <div>
           <AdminNav />
         </div>
-        <div className="col-md-6">
+        <div className="col-md-5">
           <h4>Product create</h4>
           <hr />
 
@@ -262,10 +318,16 @@ const CreateProduct = () => {
                 </Select>
               </div>
             )}
+            <FileUploader
+              values={values}
+              setValues={setValues}
+              setImgloading={setImgloading}
+            />
 
             <button className="btn btn-outline-info">Save</button>
           </form>
         </div>
+        {imagePreview}
       </div>
     </div>
   );
